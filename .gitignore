@@ -1,0 +1,16 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment / Config (don't ignore db.php if it's the only copy, but good practice to keep secrets out)
+# .env
+# backend/config/db.php
+
+# Node
+node_modules/
+package-lock.json
+
+# Temporary / Debug
+debug.log
+error_log
+debug.php
