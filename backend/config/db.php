@@ -2,13 +2,25 @@
 ini_set('display_errors', 0);
 error_reporting(0);
 
-// Database credentials
-$host     = 'localhost';
-$dbname   = 'devfolio_db'; // Matches setup.sql
-$username = 'root';
-$password = '';
+// ── DATABASE CONFIGURATION ────────────────────────────────────
+// Automatically switch between Local (XAMPP) and Production (InfinityFree)
+$isLocal = ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1');
+
+if ($isLocal) {
+    $host     = 'localhost';
+    $dbname   = 'devfolio_db';
+    $username = 'root';
+    $password = '';
+} else {
+    // ⚠️ UPDATE THESE with your InfinityFree details from your Client Area
+    $host     = 'sqlXXX.infinityfree.com'; 
+    $dbname   = 'if0_XXXXXX_devfolio_db'; 
+    $username = 'if0_XXXXXX';
+    $password = 'Your_Infinity_Password';
+}
 
 // Note: mysqli connection removed in favor of standardized PDO.
+
 
 
 /**
