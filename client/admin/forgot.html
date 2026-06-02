@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forgot Password — dev.folio Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/x-icon" href="../../assets/favicon/favicon.ico" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">dev.folio</div>
+    <div class="login-subtitle">Reset Password</div>
+
+    <div id="alert" class="alert"></div>
+
+    <!-- Step 1: Enter Gmail -->
+    <div id="step1">
+      <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:1.5rem;">
+        Enter your admin Gmail address. We'll send a reset link directly to your inbox.
+      </p>
+      <form id="forgotForm">
+        <div class="form-group">
+          <label class="form-label" for="adminEmail">Admin Gmail Address</label>
+          <input type="email" id="adminEmail" class="form-control" placeholder="admin@gmail.com" required />
+        </div>
+        <button type="submit" id="sendBtn" class="btn btn-primary" style="width:100%;">
+          <i class="fas fa-paper-plane"></i> Send Reset Link
+        </button>
+      </form>
+    </div>
+
+    <!-- Step 2: Success message (shown after email sent) -->
+    <div id="step2" style="display:none; text-align:center; padding: 1rem 0;">
+      <div style="font-size:2.5rem; color:var(--success); margin-bottom:1rem;">
+        <i class="fas fa-envelope-circle-check"></i>
+      </div>
+      <h3 style="color:var(--text); margin-bottom:0.5rem;">Check your inbox!</h3>
+      <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.6;">
+        A password reset link has been sent to your Gmail address.
+        The link expires in <strong style="color:var(--warning);">15 minutes</strong>.
+      </p>
+      <button onclick="document.getElementById('step1').style.display='block'; document.getElementById('step2').style.display='none';"
+        class="btn btn-ghost" style="margin-top:1.5rem; width:100%;">
+        <i class="fas fa-redo"></i> Resend Link
+      </button>
+    </div>
+
+    <a class="forgot-link" href="login.html">
+      <i class="fas fa-arrow-left"></i> Back to Login
+    </a>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+  // ── EmailJS config (mirrors main.js getEmailJSConfig fallbacks) ───────────
+  function getAdminEmailJSConfig() {
+    let serviceId       = 'service_cf49mul';
+    let resetTemplateId = 'template_reset01';
+    let publicKey       = 'KlVap2Dd6hYP_CS06';
+    try {
+      const metaEnv = new Function('return typeof import.meta !== "undefined" ? import.meta.env : null')();
+      if (metaEnv) {
+        if (metaEnv.VITE_EMAILJS_SERVICE_ID)        serviceId       = metaEnv.VITE_EMAILJS_SERVICE_ID;
+        if (metaEnv.VITE_EMAILJS_RESET_TEMPLATE_ID) resetTemplateId = metaEnv.VITE_EMAILJS_RESET_TEMPLATE_ID;
+        if (metaEnv.VITE_EMAILJS_PUBLIC_KEY)         publicKey       = metaEnv.VITE_EMAILJS_PUBLIC_KEY;
+      }
+    } catch (e) {}
+    return { serviceId, resetTemplateId, publicKey };
+  }
+
+  // ── Generate a crypto-random token ────────────────────────────────────────
+  function generateToken() {
+    const arr = new Uint8Array(24);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ── Derive the reset URL for the current host ──────────────────────────────
+  function buildResetUrl(token) {
+    const base = window.location.href.replace(/\/[^/]*$/, ''); // strip filename
+    return `${base}/reset-password.html?token=${token}`;
+  }
+
+  // ── UI helpers ────────────────────────────────────────────────────────────
+  const alertEl = document.getElementById('alert');
+  function showAlert(msg, type = 'error') {
+    alertEl.textContent = msg;
+    alertEl.className = `alert alert-${type} show`;
+  }
+  function hideAlert() { alertEl.className = 'alert'; }
+
+  // ── Form submission ───────────────────────────────────────────────────────
+  document.getElementById('forgotForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    hideAlert();
+
+    const enteredEmail = document.getElementById('adminEmail').value.trim().toLowerCase();
+    const adminEmail   = (typeof ADMIN_EMAIL !== 'undefined' ? ADMIN_EMAIL : '').toLowerCase();
+
+    // Security: only proceed if the email matches the stored admin email
+    if (enteredEmail !== adminEmail) {
+      showAlert('No admin account found with that Gmail address.');
+      return;
+    }
+
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+
+    // Generate token and store with 15-min expiry
+    const token   = generateToken();
+    const expiry  = Date.now() + 15 * 60 * 1000; // 15 minutes
+    localStorage.setItem('pwd_reset_token',  token);
+    localStorage.setItem('pwd_reset_expiry', String(expiry));
+
+    const resetUrl = buildResetUrl(token);
+
+    // Init EmailJS and send the reset email
+    const cfg = getAdminEmailJSConfig();
+    try {
+      emailjs.init(cfg.publicKey);
+      await emailjs.send(cfg.serviceId, cfg.resetTemplateId, {
+        to_email:   ADMIN_EMAIL,
+        reset_link: resetUrl,
+        expiry_min: '15',
+        sent_time:  new Date().toLocaleString()
+      });
+
+      // Show success step
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
+    } catch (err) {
+      console.error('[EmailJS] Reset email failed:', err.status, err.text, err);
+      showAlert('Failed to send reset email. Please try again or check your EmailJS template ID.');
+      btn.disabled  = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+    }
+  });
+</script>
+</body>
+</html>

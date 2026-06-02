@@ -30,6 +30,7 @@
     href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700;800&family=Epilogue:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <!-- Favicon Tags -->
   <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
@@ -56,8 +57,11 @@
     })();
   </script>
 
-  <!-- EmailJS CDN -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <!-- EmailJS SDK -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"
+    defer>
+  </script>
 </head>
 
 <body>
@@ -78,7 +82,7 @@
         <div class="theme-toggle" title="Toggle Theme">
           <div class="theme-toggle-handle"></div>
         </div>
-        <a href="contact.html" class="btn btn-outlined">Hire Me &rarr;</a>
+        <a href="contact.html" class="btn btn-outlined">Hire Me <i class="fas fa-arrow-right" style="margin-left:5px;"></i></a>
         <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
       </div>
     </div>
@@ -183,15 +187,15 @@
       </div>
 
       <div class="contact-form-card reveal">
-        <form id="contact-form">
+        <form id="contactForm">
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="firstName">First Name</label>
-              <input type="text" id="firstName" name="firstName" class="form-control" required />
+              <label class="form-label" for="fname">First Name</label>
+              <input type="text" id="fname" name="firstName" class="form-control" required />
             </div>
             <div class="form-group">
-              <label class="form-label" for="lastName">Last Name</label>
-              <input type="text" id="lastName" name="lastName" class="form-control" required />
+              <label class="form-label" for="lname">Last Name</label>
+              <input type="text" id="lname" name="lastName" class="form-control" required />
             </div>
           </div>
 
@@ -231,14 +235,7 @@
           </div>
 
           <button type="submit" class="btn btn-filled submit-btn" id="submitBtn">
-            <span id="btnText">Send Message &rarr;</span>
-            <div class="spinner" id="btnSpinner"></div>
-            <svg id="btnIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-              style="margin-left:4px;">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
+            Send Message &rarr;
           </button>
         </form>
       </div>
@@ -247,9 +244,13 @@
 
   <div id="footer-placeholder"></div>
 
-  <!-- Toast -->
+  <!-- Toast Notification -->
   <div class="toast" id="toast">
-    <div id="toastMsg">Message sent successfully!</div>
+    <span class="toast-icon" id="toast-icon">✓</span>
+    <div>
+      <div class="toast-title" id="toast-title"></div>
+      <div class="toast-text"  id="toast-text"></div>
+    </div>
   </div>
 
   <script src="main.js"></script>

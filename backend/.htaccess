@@ -1,4 +1,4 @@
-# Apache .htaccess — Antigravity Backend Security & Routing
+# Apache .htaccess — Ezitom Backend Security & Routing
 Options -Indexes
 
 # ── Block direct browser access to config files ───────────────

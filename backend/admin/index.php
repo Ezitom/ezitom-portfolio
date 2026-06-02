@@ -1,4 +1,5 @@
 <?php
+ob_start();
 /**
  * index.php — Admin Dashboard
  * Tabs: Projects | Skills | Messages
@@ -17,7 +18,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 
 $pdo       = getPDO();
 $tab       = $_POST['tab'] ?? $_GET['tab'] ?? 'projects';
-$alert     = '';
+$catFilter = $_GET['cat'] ?? 'all';
+$alert     = $_GET['alert'] ?? '';
 $alertType = 'success';
 
 // ══════════════════════════════════════════════════════════════
@@ -30,7 +32,7 @@ if ($tab === 'projects' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $tech_raw = trim($_POST['tech_stack']  ?? '');
     $img_url  = trim($_POST['image_url']   ?? '');
     $live_url = trim($_POST['live_url']    ?? '');
-    $category = trim($_POST['category']    ?? 'General');
+    $category = trim($_POST['category']    ?? 'Business');
     $techArr  = array_filter(array_map('trim', explode(',', $tech_raw)));
     $techJson = json_encode(array_values($techArr));
 
@@ -40,6 +42,8 @@ if ($tab === 'projects' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("INSERT INTO projects (title,description,tech_stack,image_url,live_url,category) VALUES(:t,:d,:ts,:i,:l,:c)");
             $stmt->execute([':t'=>htmlspecialchars($title,ENT_QUOTES,'UTF-8'),':d'=>htmlspecialchars($desc,ENT_QUOTES,'UTF-8'),':ts'=>$techJson,':i'=>htmlspecialchars($img_url,ENT_QUOTES,'UTF-8'),':l'=>htmlspecialchars($live_url,ENT_QUOTES,'UTF-8'),':c'=>$category]);
             $alert = 'Project added successfully.';
+            header("Location: index.php?tab=projects&alert=" . urlencode($alert) . "&cat=" . urlencode($catFilter));
+            exit;
         }
     }
 
@@ -50,6 +54,8 @@ if ($tab === 'projects' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("UPDATE projects SET title=:t,description=:d,tech_stack=:ts,image_url=:i,live_url=:l,category=:c WHERE id=:id");
             $stmt->execute([':t'=>htmlspecialchars($title,ENT_QUOTES,'UTF-8'),':d'=>htmlspecialchars($desc,ENT_QUOTES,'UTF-8'),':ts'=>$techJson,':i'=>htmlspecialchars($img_url,ENT_QUOTES,'UTF-8'),':l'=>htmlspecialchars($live_url,ENT_QUOTES,'UTF-8'),':c'=>$category,':id'=>$id]);
             $alert = 'Project updated.';
+            header("Location: index.php?tab=projects&alert=" . urlencode($alert) . "&cat=" . urlencode($catFilter));
+            exit;
         }
     }
 
@@ -116,7 +122,14 @@ $projects = $skills = $contacts = [];
 $editProject = null;
 
 if ($tab === 'projects') {
-    $projects = $pdo->query("SELECT * FROM projects ORDER BY created_at DESC")->fetchAll();
+    if ($catFilter !== 'all') {
+        $stmt = $pdo->prepare("SELECT * FROM projects WHERE category=:cat ORDER BY created_at DESC");
+        $stmt->execute([':cat' => $catFilter]);
+        $projects = $stmt->fetchAll();
+    } else {
+        $projects = $pdo->query("SELECT * FROM projects ORDER BY created_at DESC")->fetchAll();
+    }
+    
     if (isset($_GET['edit'])) {
         $s = $pdo->prepare("SELECT * FROM projects WHERE id=:id");
         $s->execute([':id'=>(int)$_GET['edit']]);
@@ -154,9 +167,9 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- Add / Edit Form -->
 <div class="card">
   <div class="card-title">
-    <?= $editProject ? '✏️ Edit Project' : '➕ Add New Project' ?>
+    <?= $editProject ? '<i class="fas fa-pen"></i> Edit Project' : '<i class="fas fa-plus"></i> Add New Project' ?>
   </div>
-  <form method="POST" action="index.php?tab=projects">
+  <form method="POST" action="index.php?tab=projects<?= $catFilter !== 'all' ? '&cat='.urlencode($catFilter) : '' ?>">
     <input type="hidden" name="action" value="<?= $editProject ? 'edit' : 'add' ?>">
     <?php if ($editProject): ?>
       <input type="hidden" name="id" value="<?= (int)$editProject['id'] ?>">
@@ -171,8 +184,15 @@ require_once __DIR__ . '/../includes/header.php';
       <div class="form-group">
         <label class="form-label">Category *</label>
         <select name="category" class="form-control">
-          <?php foreach(['General','Business','Events & Wedding'] as $cat): ?>
-            <option value="<?= $cat ?>" <?= ($editProject['category'] ?? '') === $cat ? 'selected' : '' ?>><?= $cat ?></option>
+          <?php foreach(['Business','Wedding'] as $cat): 
+            $selected = '';
+            if ($editProject) {
+              if ($editProject['category'] === $cat) $selected = 'selected';
+            } else {
+              if ($catFilter !== 'all' && $catFilter === $cat) $selected = 'selected';
+            }
+          ?>
+            <option value="<?= $cat ?>" <?= $selected ?>><?= $cat ?></option>
           <?php endforeach; ?>
         </select>
       </div>
@@ -218,49 +238,103 @@ require_once __DIR__ . '/../includes/header.php';
   </form>
 </div>
 
-<!-- Projects Table -->
-<div class="card">
-  <div class="card-title">All Projects (<?= count($projects) ?>)</div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th><th>Title</th><th>Category</th><th>Tech Stack</th><th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($projects as $p): ?>
-          <?php $ts = json_decode($p['tech_stack'], true) ?? []; ?>
-          <tr>
-            <td><?= (int)$p['id'] ?></td>
-            <td>
-              <strong><?= htmlspecialchars($p['title'], ENT_QUOTES, 'UTF-8') ?></strong>
-              <?php if ($p['live_url'] && $p['live_url'] !== '#'): ?>
-                <br><a href="<?= htmlspecialchars($p['live_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank"
-                   style="color:var(--accent);font-size:.78rem;">↗ View</a>
-              <?php endif; ?>
-            </td>
-            <td>
-              <span class="badge <?= $p['category'] === 'Business' ? 'badge-green' : ($p['category'] === 'General' ? 'badge-blue' : 'badge-purple') ?>">
-                <?= htmlspecialchars($p['category'], ENT_QUOTES, 'UTF-8') ?>
-              </span>
-            </td>
-            <td style="color:var(--text2);font-size:.8rem;"><?= htmlspecialchars(implode(', ', $ts), ENT_QUOTES, 'UTF-8') ?></td>
-            <td>
-              <a href="index.php?tab=projects&edit=<?= (int)$p['id'] ?>" class="btn btn-secondary btn-sm">Edit</a>
-              <form class="delete-form" data-endpoint="../api/projects.php" data-id="<?= (int)$p['id'] ?>" style="display:inline;">
-                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-              </form>
-            </td>
-          </tr>
-        <?php endforeach; ?>
-        <?php if (empty($projects)): ?>
-          <tr><td colspan="5" style="color:var(--text2);text-align:center;padding:2rem;">No projects yet.</td></tr>
-        <?php endif; ?>
-      </tbody>
-    </table>
-  </div>
-</div>
+<?php
+if ($catFilter === 'all') {
+    $businessProjects = array_filter($projects, fn($p) => $p['category'] === 'Business');
+    // Support both old and new wedding category names for the transition
+    $weddingProjects  = array_filter($projects, fn($p) => in_array($p['category'], ['Wedding', 'Events & Wedding']));
+    $generalProjects  = array_filter($projects, fn($p) => !in_array($p['category'], ['Business', 'Wedding', 'Events & Wedding']));
+
+    $renderTable = function($list, $title, $emptyMsg = 'No projects in this category.') {
+        $count = count($list);
+        echo '<div class="card" style="height: 100%;">';
+        echo '  <div class="card-title" style="margin-bottom:1rem;">' . $title . ' (' . $count . ')</div>';
+        if ($count > 0) {
+            echo '  <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:1rem;">';
+            foreach ($list as $p) {
+                $ts = json_decode($p['tech_stack'], true) ?? [];
+                echo '<div style="background:var(--surface2); padding:1rem; border-radius:var(--radius); border:1px solid var(--border);">
+                        <div style="margin-bottom:.75rem;">
+                          <strong style="display:block; font-size:.9rem; margin-bottom:.2rem;">' . htmlspecialchars($p['title'], ENT_QUOTES, 'UTF-8') . '</strong>
+                          <span style="color:var(--text2); font-size:.75rem;">' . htmlspecialchars(implode(', ', $ts), ENT_QUOTES, 'UTF-8') . '</span>
+                        </div>
+                        <div style="display:flex; gap:.5rem; align-items:center; justify-content:space-between;">
+                          <div>';
+                if ($p['live_url'] && $p['live_url'] !== '#') {
+                    echo '  <a href="' . htmlspecialchars($p['live_url'], ENT_QUOTES, 'UTF-8') . '" target="_blank"
+                               style="color:var(--accent); font-size:.75rem; text-decoration:none;"><i class="fas fa-external-link-alt"></i> View</a>';
+                }
+                echo '    </div>
+                          <div style="display:flex; gap:.4rem;">
+                            <a href="index.php?tab=projects&edit=' . (int)$p['id'] . '" class="btn btn-secondary btn-sm" style="padding:.2rem .5rem; font-size:.7rem;">Edit</a>
+                            <form class="delete-form" data-endpoint="../api/projects.php" data-id="' . (int)$p['id'] . '" style="display:inline;">
+                              <button type="submit" class="btn btn-danger btn-sm" style="padding:.2rem .5rem; font-size:.7rem;">Delete</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>';
+            }
+            echo '  </div>';
+        } else {
+            echo '  <div style="padding:2.5rem; text-align:center; color:var(--text2); font-size:.9rem; background:rgba(0,0,0,0.05); border-radius:8px; border:1px dashed var(--border);">' . $emptyMsg . '</div>';
+        }
+        echo '</div>';
+    };
+
+    echo '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:1.5rem; align-items: flex-start;">';
+    
+    $renderTable($businessProjects, 'Business Projects');
+    $renderTable($weddingProjects,  'Wedding Projects');
+    
+    // Any remaining projects that might have an old category
+    if (count($generalProjects) > 0) {
+        $renderTable($generalProjects,  'Other Projects (Unassigned)');
+    }
+    
+    echo '</div>';
+} else {
+    // Show only the selected category
+    // Special case for wedding transition
+    if ($catFilter === 'Wedding') {
+        $projects = array_filter($projects, fn($p) => in_array($p['category'], ['Wedding', 'Events & Wedding']));
+    }
+    
+    $title = $catFilter . ' Projects';
+    
+    echo '<div class="card">';
+    echo '  <div class="card-title" style="margin-bottom:1.5rem;">' . $title . ' (' . count($projects) . ')</div>';
+    if (!empty($projects)) {
+        echo '  <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:1.5rem;">';
+        foreach ($projects as $p) {
+            $ts = json_decode($p['tech_stack'], true) ?? [];
+            echo '<div style="background:var(--surface2); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--border); display:flex; flex-direction:column; justify-content:space-between;">
+                    <div style="margin-bottom:1rem;">
+                      <strong style="display:block; font-size:1rem; margin-bottom:.3rem;">' . htmlspecialchars($p['title'], ENT_QUOTES, 'UTF-8') . '</strong>
+                      <span style="color:var(--text2); font-size:.8rem;">' . htmlspecialchars(implode(', ', $ts), ENT_QUOTES, 'UTF-8') . '</span>
+                    </div>
+                    <div style="display:flex; gap:.75rem; align-items:center; justify-content:space-between; margin-top:auto;">
+                      <div>';
+            if ($p['live_url'] && $p['live_url'] !== '#') {
+                echo '  <a href="' . htmlspecialchars($p['live_url'], ENT_QUOTES, 'UTF-8') . '" target="_blank"
+                           style="color:var(--accent); font-size:.8rem; text-decoration:none;"><i class="fas fa-external-link-alt"></i> View</a>';
+            }
+            echo '    </div>
+                      <div style="display:flex; gap:.5rem;">
+                        <a href="index.php?tab=projects&edit=' . (int)$p['id'] . '&cat=' . urlencode($catFilter) . '" class="btn btn-secondary btn-sm">Edit</a>
+                        <form class="delete-form" data-endpoint="../api/projects.php" data-id="' . (int)$p['id'] . '" style="display:inline;">
+                          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>';
+        }
+        echo '  </div>';
+    } else {
+        echo '  <div style="padding:4rem; text-align:center; color:var(--text2); font-size:1.1rem; background:rgba(0,0,0,0.03); border-radius:12px; border:2px dashed var(--border);">No projects found in the ' . htmlspecialchars($catFilter) . ' category.</div>';
+    }
+    echo '</div>';
+}
+?>
 
 <!-- ══════════════════ SKILLS TAB ══════════════════ -->
 <?php elseif ($tab === 'skills'): ?>
@@ -270,7 +344,7 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="card">
-  <div class="card-title">➕ Add Skill</div>
+  <div class="card-title"><i class="fas fa-plus"></i> Add Skill</div>
   <form method="POST" action="index.php?tab=skills">
     <input type="hidden" name="action" value="add">
     <div style="display:grid;grid-template-columns:1fr 1fr 120px auto;gap:1rem;align-items:flex-end;">

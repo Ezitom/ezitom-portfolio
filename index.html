@@ -30,6 +30,7 @@
     href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700;800&family=Epilogue:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <!-- Favicon Tags -->
   <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
@@ -48,6 +49,11 @@
         document.documentElement.setAttribute('data-theme', 'dark');
       }
     })();
+  </script>
+  <!-- EmailJS SDK -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"
+    defer>
   </script>
 </head>
 
@@ -92,7 +98,7 @@
     <div class="grid-overlay"></div>
     <div class="hero-content">
       <div class="pill-badge fade-up d-1">
-        <div class="pulse-dot"></div> ● Available for new projects — 2025
+        <div class="pulse-dot"></div> Available for new projects — 2025
       </div>
       <h1 class="hero-title fade-up d-2">
         Building the web<br />
@@ -106,7 +112,7 @@
         run fast, and scale nicely.
       </p>
       <div class="hero-ctas fade-up d-5">
-        <a href="projects.html" class="btn btn-filled">See My Work &rarr;</a>
+        <a href="projects.html" class="btn btn-filled">See My Work <i class="fas fa-arrow-right" style="margin-left:5px;"></i></a>
         <a href="contact.html" class="btn btn-outlined">Let's Talk</a>
       </div>
       <div class="hero-stats fade-up d-5">
@@ -124,25 +130,25 @@
           <h4 class="value-title">About Me</h4>
           <p class="value-copy" style="margin-bottom: 1.5rem;">Get to know the developer behind the code. Learn about my
             background, values, and what drives me to build great web experiences.</p>
-          <a href="about.html" class="btn btn-filled" style="width: 100%; text-align: center;">Read More &rarr;</a>
+          <a href="about.html" class="btn btn-filled" style="width: 100%; text-align: center;">Read More <i class="fas fa-arrow-right" style="margin-left:5px;"></i></a>
         </div>
         <div class="value-card">
           <h4 class="value-title">Skills & Tech Stack</h4>
           <p class="value-copy" style="margin-bottom: 1.5rem;">An overview of the tools, languages, and frameworks I use
             to bring ideas to life. From Frontend to Backend and DevOps. Bringing ideas to life.</p>
-          <a href="skills.html" class="btn btn-filled" style="width: 100%; text-align: center;">Read More &rarr;</a>
+          <a href="skills.html" class="btn btn-filled" style="width: 100%; text-align: center;">Read More <i class="fas fa-arrow-right" style="margin-left:5px;"></i></a>
         </div>
         <div class="value-card">
           <h4 class="value-title">Projects</h4>
-          <p class="value-copy" style="margin-bottom: 1.5rem;">A curated selection of my recent work across business,
-            events, and general web applications. See what I've built and how it performs.</p>
-          <a href="projects.html" class="btn btn-filled" style="width: 100%; text-align: center;">Read More &rarr;</a>
+          <p class="value-copy" style="margin-bottom: 1.5rem;">A curated selection of my recent work across business
+            and events. See what I've built and how it performs.</p>
+          <a href="projects.html" class="btn btn-filled" style="width: 100%; text-align: center;">Read More <i class="fas fa-arrow-right" style="margin-left:5px;"></i></a>
         </div>
         <div class="value-card">
           <h4 class="value-title">Experience</h4>
           <p class="value-copy" style="margin-bottom: 1.5rem;">My professional journey over the years. Discover the
             roles I've held, the teams I've worked with, and my educational background.</p>
-          <a href="experience.html" class="btn btn-filled" style="width: 100%; text-align: center;">Read More &rarr;</a>
+          <a href="experience.html" class="btn btn-filled" style="width: 100%; text-align: center;">Read More <i class="fas fa-arrow-right" style="margin-left:5px;"></i></a>
         </div>
       </div>
     </div>
@@ -156,22 +162,22 @@
         <p style="color:var(--text2); line-height:1.6;">No lengthy forms, no waiting weeks for a quote. Just tell me
           what you're thinking and I'll come back to you with an honest response — usually same day.</p>
         <div class="enquiry-trust">
-          <div class="trust-badge"><span>✓</span> Usually replies within 24hrs</div>
-          <div class="trust-badge"><span>✓</span> Free initial consultation</div>
-          <div class="trust-badge"><span>✓</span> No commitment needed</div>
+          <div class="trust-badge"><i class="fas fa-check" style="margin-right:8px; color:var(--accent);"></i> Usually replies within 24hrs</div>
+          <div class="trust-badge"><i class="fas fa-check" style="margin-right:8px; color:var(--accent);"></i> Free initial consultation</div>
+          <div class="trust-badge"><i class="fas fa-check" style="margin-right:8px; color:var(--accent);"></i> No commitment needed</div>
         </div>
       </div>
       <div class="enquiry-form card">
         <form id="homeEnquiryForm">
           <div class="form-group" style="margin-bottom:1rem;">
-            <input type="text" id="enqName" placeholder="Your name" required style="width:100%;" class="form-control">
+            <input type="text" id="enquiry-name" placeholder="Your name" required style="width:100%;" class="form-control">
           </div>
           <div class="form-group" style="margin-bottom:1rem;">
-            <input type="email" id="enqEmail" placeholder="Your email address" required style="width:100%;"
+            <input type="email" id="enquiry-email" placeholder="Your email address" required style="width:100%;"
               class="form-control">
           </div>
           <div class="form-group" style="margin-bottom:1rem;">
-            <select id="enqService" required style="width:100%;" class="form-control">
+            <select id="enquiry-subject" required style="width:100%;" class="form-control">
               <option value="" disabled selected>What do you need?</option>
               <option value="I need a website built from scratch">I need a website built from scratch</option>
               <option value="I need help with an existing site">I need help with an existing site</option>
@@ -180,12 +186,11 @@
             </select>
           </div>
           <div class="form-group" style="margin-bottom:1rem;">
-            <textarea id="enqMessage" placeholder="Give me the short version — I'll ask follow-up questions" required
+            <textarea id="enquiry-message" placeholder="Give me the short version — I'll ask follow-up questions" required
               style="width:100%; min-height:110px;" class="form-control"></textarea>
           </div>
-          <button type="submit" class="btn btn-filled" style="width:100%;" id="enqSubmitBtn">
-            <span id="enqBtnText">Send Enquiry &rarr;</span>
-            <div class="spinner" id="enqSpinner" style="display:none;"></div>
+          <button type="submit" class="btn btn-filled" style="width:100%;" id="homeEnquiryBtn">
+            Send Message &rarr;
           </button>
         </form>
       </div>
@@ -196,7 +201,11 @@
 
   <!-- Toast Notification -->
   <div class="toast" id="toast">
-    <div id="toastMsg">Message sent successfully!</div>
+    <span class="toast-icon" id="toast-icon">✓</span>
+    <div>
+      <div class="toast-title" id="toast-title"></div>
+      <div class="toast-text"  id="toast-text"></div>
+    </div>
   </div>
 
   <script src="main.js"></script>

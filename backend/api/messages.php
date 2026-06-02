@@ -1,6 +1,7 @@
 <?php
 /**
  * messages.php — CRUD for contact messages
+ * GET    → fetch all messages (supports ?id= filter for single message)
  * DELETE → remove a message    — admin only
  * Returns: JSON
  */
@@ -14,7 +15,7 @@ error_reporting(0);
 ob_start();
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: DELETE, OPTIONS');
+header('Access-Control-Allow-Methods: GET, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // ── Helper ────────────────────────────────────────────────────
@@ -43,8 +44,32 @@ try {
     $method = $_SERVER['REQUEST_METHOD'];
     $pdo    = getPDO();
 
+    // ── GET — fetch messages ──────────────────────────────────────
+    if ($method === 'GET') {
+        $id = $_GET['id'] ?? null;
+
+        if ($id) {
+            // Fetch single message
+            $stmt = $pdo->prepare("SELECT * FROM contacts WHERE id = :id LIMIT 1");
+            $stmt->execute([':id' => (int)$id]);
+            $message = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($message) {
+                respond(true, 'Message retrieved.', 200, ['data' => $message]);
+            } else {
+                respond(false, 'Message not found.', 404);
+            }
+        } else {
+            // Fetch all messages
+            $stmt = $pdo->query("SELECT id, name, email, subject, message, created_at FROM contacts ORDER BY created_at DESC");
+            $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            respond(true, 'Messages retrieved.', 200, ['data' => $messages]);
+        }
+    }
+
     // ── DELETE — remove message ───────────────────────────────────
-    if ($method === 'DELETE') {
+    elseif ($method === 'DELETE') {
         requireAdmin();
 
         $raw  = file_get_contents('php://input');

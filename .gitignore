@@ -2,8 +2,11 @@
 .DS_Store
 Thumbs.db
 
-# Environment / Config (don't ignore db.php if it's the only copy, but good practice to keep secrets out)
-# .env
+# Environment variables — never commit these
+.env
+.env.local
+.env.development
+.env.production
 # backend/config/db.php
 
 # Node

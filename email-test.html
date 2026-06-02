@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>EmailJS — Connection Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #0b0c10;
+           color: #e8e8f0; display: flex; flex-direction: column;
+           align-items: center; justify-content: center;
+           min-height: 100vh; gap: 1.5rem; padding: 2rem; }
+    h1  { color: #00d4c8; font-size: 1.4rem; }
+    p   { color: #9090a8; font-size: .85rem; text-align: center; max-width: 480px; }
+    button { background: #00d4c8; color: #0b0c10; border: none; padding: 14px 36px;
+             border-radius: 8px; font-size: 1rem; font-family: inherit;
+             font-weight: bold; cursor: pointer; transition: opacity .2s; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    #log { background: #13141a; border: 1px solid #1a1b24; border-radius: 10px;
+           padding: 1.5rem; width: 100%; max-width: 560px; white-space: pre-wrap;
+           font-size: .82rem; min-height: 140px; color: #9090a8; line-height: 1.8; }
+    .ok  { color: #00d4c8; }
+    .err { color: #e24b4a; }
+    .warn { color: #f5a623; }
+    .del-notice { background: #1a1b24; border: 1px solid #e24b4a;
+                 border-radius: 8px; padding: 1rem 1.5rem; max-width: 560px;
+                 font-size: .78rem; color: #e24b4a; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>EmailJS — Connection Test</h1>
+  <p>
+    This sends a real test email to <strong style="color:#00d4c8">
+    oniebenezer1@gmail.com</strong> to confirm everything is wired correctly.
+    Click the button and watch the log below.
+  </p>
+  <button id="btn" onclick="runTest()">Run Connection Test</button>
+  <div id="log">Ready. Click the button above to start the test...</div>
+  <div class="del-notice">
+    ⚠ DELETE this file before deploying your site live.<br/>
+    It contains your private EmailJS keys.
+  </div>
+
+  <script>
+    // ── Pre-filled with your real keys from setup ──
+    const PUBLIC_KEY   = 'yIPHvqwwbHten6-Q1';
+    const SERVICE_ID   = 'service_cf49mul';
+    const TEMPLATE_ID  = 'template_ab12cd3';
+    const AUTOREPLY_ID = 'template_babyzyk';
+    const DEV_EMAIL    = 'oniebenezer1@gmail.com';
+    const SITE_URL     = 'http://localhost/ezitom/';
+
+    const log = document.getElementById('log');
+    const btn = document.getElementById('btn');
+
+    function write(msg, cls) {
+      log.innerHTML += `<span class="${cls||''}">${msg}\n</span>`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function runTest() {
+      btn.disabled = true;
+      log.innerHTML = '';
+      write('Starting EmailJS connection test...\n');
+
+      try {
+        // Step 1 — Initialise
+        write('Step 1 — Initialising SDK...');
+        emailjs.init(PUBLIC_KEY);
+        write('✓ SDK initialised with your Public Key\n', 'ok');
+
+        // Step 2 — Send developer notification
+        write('Step 2 — Sending developer notification...');
+        write('  To: ' + DEV_EMAIL, 'warn');
+        await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+          first_name:  'Test',
+          last_name:   'Visitor',
+          reply_to:    DEV_EMAIL,
+          subject:     'Test Enquiry — EmailJS Setup',
+          budget:      'Test only',
+          message:     'This is a test email confirming your EmailJS integration is working correctly on your portfolio site.',
+          form_source: 'email-test.html',
+          site_url:    SITE_URL,
+        });
+        write('✓ Developer notification sent successfully', 'ok');
+        write('  Check your inbox at: ' + DEV_EMAIL + '\n', 'warn');
+
+        // Step 3 — Send auto-reply
+        write('Step 3 — Sending auto-reply test...');
+        write('  To: ' + DEV_EMAIL + ' (simulating a visitor)', 'warn');
+        await emailjs.send(SERVICE_ID, AUTOREPLY_ID, {
+          first_name: 'Ebenezer',
+          reply_to:   DEV_EMAIL,
+          subject:    'Test Enquiry — EmailJS Setup',
+          message:    'This is a test email confirming your auto-reply template is working correctly.',
+          site_url:   SITE_URL,
+        });
+        write('✓ Auto-reply sent successfully\n', 'ok');
+
+        // All passed
+        write('══════════════════════════════════════', 'ok');
+        write('  ✓✓ ALL TESTS PASSED', 'ok');
+        write('  Your email API is fully connected.', 'ok');
+        write('  Check oniebenezer1@gmail.com inbox', 'ok');
+        write('  for 2 emails — both should arrive', 'ok');
+        write('  within 30 seconds.', 'ok');
+        write('══════════════════════════════════════', 'ok');
+        write('\n⚠ Remember to DELETE this file before going live.', 'warn');
+
+      } catch (err) {
+        write('\n✕ TEST FAILED', 'err');
+        write('Error: ' + JSON.stringify(err, null, 2), 'err');
+        write('\nCommon fixes:', 'warn');
+        write('  • Double-check your Public Key in this file', 'warn');
+        write('  • Make sure your Gmail service is connected in EmailJS', 'warn');
+        write('  • Check your template variable names match exactly', 'warn');
+        write('  • Make sure your EmailJS account is verified', 'warn');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

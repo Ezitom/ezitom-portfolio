@@ -1,8 +1,9 @@
 <?php
 /**
  * skills.php — CRUD for skills/tech stack
- * GET    → fetch all skills grouped by category — public
+ * GET    → fetch all skills grouped by category (supports ?id= filter for single skill) — public
  * POST   → add a new skill   — admin only
+ * PUT    → update skill      — admin only
  * DELETE → remove a skill    — admin only
  * Returns: JSON
  */
@@ -16,7 +17,7 @@ error_reporting(0);
 ob_start();
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // ── Helper ────────────────────────────────────────────────────
@@ -47,23 +48,39 @@ try {
 
     // ── GET — fetch all skills grouped by category ────────────────
     if ($method === 'GET') {
-        $stmt  = $pdo->query("SELECT * FROM skills ORDER BY category, proficiency DESC");
-        $rows  = $stmt->fetchAll();
+        $id = $_GET['id'] ?? null;
 
-        $grouped = [];
-        foreach ($rows as $skill) {
-            $cat = $skill['category'];
-            if (!isset($grouped[$cat])) {
-                $grouped[$cat] = [];
+        if ($id) {
+            // Fetch single skill
+            $stmt = $pdo->prepare("SELECT * FROM skills WHERE id = :id LIMIT 1");
+            $stmt->execute([':id' => (int)$id]);
+            $skill = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($skill) {
+                respond(true, 'Skill retrieved.', 200, ['data' => $skill]);
+            } else {
+                respond(false, 'Skill not found.', 404);
             }
-            $grouped[$cat][] = [
-                'id'          => (int)$skill['id'],
-                'skill_name'  => $skill['skill_name'],
-                'proficiency' => (int)$skill['proficiency'],
-            ];
-        }
+        } else {
+            // Fetch all skills grouped by category
+            $stmt  = $pdo->query("SELECT * FROM skills ORDER BY category, proficiency DESC");
+            $rows  = $stmt->fetchAll();
 
-        respond(true, 'Skills fetched.', 200, ['data' => $grouped]);
+            $grouped = [];
+            foreach ($rows as $skill) {
+                $cat = $skill['category'];
+                if (!isset($grouped[$cat])) {
+                    $grouped[$cat] = [];
+                }
+                $grouped[$cat][] = [
+                    'id'          => (int)$skill['id'],
+                    'skill_name'  => $skill['skill_name'],
+                    'proficiency' => (int)$skill['proficiency'],
+                ];
+            }
+
+            respond(true, 'Skills fetched.', 200, ['data' => $grouped]);
+        }
     }
 
     // ── POST — add new skill ──────────────────────────────────────
@@ -91,6 +108,40 @@ try {
             ':proficiency' => $proficiency,
         ]);
         respond(true, 'Skill added.', 201, ['id' => (int)$pdo->lastInsertId()]);
+    }
+
+    // ── PUT — update skill ────────────────────────────────────────
+    if ($method === 'PUT') {
+        requireAdmin();
+
+        $raw  = file_get_contents('php://input');
+        $body = json_decode($raw, true) ?? $_POST;
+
+        $id           = (int)($body['id'] ?? 0);
+        $skill_name   = trim($body['skill_name'] ?? '');
+        $category     = trim($body['category'] ?? '');
+        $proficiency  = (int)($body['proficiency'] ?? 80);
+
+        if (!$id || !$skill_name || !$category) {
+            respond(false, 'ID, skill name and category are required.', 422);
+        }
+
+        $stmt = $pdo->prepare(
+            "UPDATE skills SET skill_name = :skill_name, category = :category, proficiency = :proficiency
+             WHERE id = :id"
+        );
+        $stmt->execute([
+            ':id'          => $id,
+            ':skill_name'  => htmlspecialchars($skill_name, ENT_QUOTES, 'UTF-8'),
+            ':category'    => htmlspecialchars($category,   ENT_QUOTES, 'UTF-8'),
+            ':proficiency' => $proficiency,
+        ]);
+
+        if ($stmt->rowCount() === 0) {
+            respond(false, 'Skill not found or no changes made.', 404);
+        }
+
+        respond(true, 'Skill updated.');
     }
 
     // ── DELETE — remove skill ─────────────────────────────────────

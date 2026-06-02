@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Dashboard - dev.folio</title>
+    <link rel="icon" type="image/x-icon" href="../assets/favicon/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4c8;
+            --primary-dark: #00b8ad;
+            --secondary: #1a1d27;
+            --accent: #ff6b7a;
+            --success: #5dd9c1;
+            --warning: #ffd93d;
+            --danger: #ff4f6a;
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-light: #2e3247;
+            --text: #e8eaf0;
+            --text-secondary: #8b91a8;
+            --border: #2e3247;
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Login Form Styles */
+        .login-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--shadow);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 212, 200, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--bg);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-error {
+            background: rgba(255, 79, 106, 0.1);
+            border: 1px solid rgba(255, 79, 106, 0.3);
+            color: var(--danger);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Dashboard styles (hidden initially) */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .dashboard.show {
+            display: flex;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 2rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 2rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary);
+            background: rgba(0, 212, 200, 0.1);
+            border-left-color: var(--primary);
+        }
+
+        .nav-link i {
+            margin-right: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-secondary {
+            background: var(--surface-light);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e63946;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .stat-icon.projects { background: rgba(0, 212, 200, 0.2); color: var(--primary); }
+        .stat-icon.skills { background: rgba(255, 107, 122, 0.2); color: var(--accent); }
+        .stat-icon.messages { background: rgba(255, 217, 61, 0.2); color: var(--warning); }
+        .stat-icon.database { background: rgba(93, 217, 193, 0.2); color: var(--success); }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .content-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .section-content {
+            padding: 1.5rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table th {
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            color: var(--text-secondary);
+        }
+
+        .table tr:hover {
+            background: rgba(0, 212, 200, 0.05);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.business { background: rgba(0, 212, 200, 0.2); color: var(--primary); }
+        .badge.general { background: rgba(93, 217, 193, 0.2); color: var(--success); }
+        .badge.events { background: rgba(255, 217, 61, 0.2); color: var(--warning); }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .alert-success {
+            background: rgba(93, 217, 193, 0.1);
+            border: 1px solid rgba(93, 217, 193, 0.3);
+            color: var(--success);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Form -->
+    <div id="login-container" class="login-container">
+        <div class="login-header">
+            <div class="login-logo">dev.folio</div>
+            <div class="login-subtitle">Client Dashboard</div>
+        </div>
+
+        <div id="login-alert" class="alert alert-error" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="login-alert-text">Invalid password</span>
+        </div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required placeholder="Enter dashboard password">
+            </div>
+            <button type="submit" class="btn btn-primary" id="login-btn">
+                <span id="login-btn-text">Login</span>
+                <div class="loading" id="login-loading" style="display: none;"></div>
+            </button>
+        </form>
+    </div>
+
+    <!-- Dashboard (hidden initially) -->
+    <div id="dashboard" class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">dev.folio</div>
+                <div class="sidebar-subtitle">Client Dashboard</div>
+            </div>
+            <nav>
+                <ul class="sidebar-nav">
+                    <li class="nav-item">
+                        <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#projects" class="nav-link" data-section="projects">
+                            <i class="fas fa-project-diagram"></i>
+                            Projects
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#skills" class="nav-link" data-section="skills">
+                            <i class="fas fa-code"></i>
+                            Skills
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#messages" class="nav-link" data-section="messages">
+                            <i class="fas fa-envelope"></i>
+                            Messages
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#database" class="nav-link" data-section="database">
+                            <i class="fas fa-database"></i>
+                            Database
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" id="logout-link">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section">
+                <div class="header">
+                    <h1 class="header-title">Dashboard Overview</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="refreshData()">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-grid" id="stats-grid">
+                    <!-- Stats will be loaded here -->
+                </div>
+
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Recent Activity</h2>
+                    </div>
+                    <div class="section-content">
+                        <div id="recent-activity">
+                            <!-- Recent activity will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Projects Section -->
+            <section id="projects-section" class="content-section" style="display: none;">
+                <div class="header">
+                    <h1 class="header-title">Projects Management</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openAddProjectModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Project
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadProjects()">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section-content">
+                    <div id="projects-table-container">
+                        <!-- Projects table will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Skills Section -->
+            <section id="skills-section" class="content-section" style="display: none;">
+                <div class="header">
+                    <h1 class="header-title">Skills Management</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openAddSkillModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Skill
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadSkills()">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section-content">
+                    <div id="skills-table-container">
+                        <!-- Skills table will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Messages Section -->
+            <section id="messages-section" class="content-section" style="display: none;">
+                <div class="header">
+                    <h1 class="header-title">Contact Messages</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="loadMessages()">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section-content">
+                    <div id="messages-table-container">
+                        <!-- Messages table will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Database Section -->
+            <section id="database-section" class="content-section" style="display: none;">
+                <div class="header">
+                    <h1 class="header-title">Database Management</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="backupDatabase()">
+                            <i class="fas fa-download"></i>
+                            Backup
+                        </button>
+                        <button class="btn btn-danger" onclick="clearDatabase()">
+                            <i class="fas fa-trash-alt"></i>
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section-content">
+                    <div id="database-info">
+                        <!-- Database info will be loaded here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Project Modal -->
+    <div id="project-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="project-modal-title">Add New Project</h3>
+                <button class="modal-close" onclick="closeModal('project-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="project-form">
+                    <input type="hidden" id="project-id" name="id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="project-title">Title *</label>
+                            <input type="text" id="project-title" name="title" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="project-category">Category</label>
+                            <select id="project-category" name="category" class="form-control">
+                                <option value="General">General</option>
+                                <option value="Business">Business</option>
+                                <option value="Events & Wedding">Events & Wedding</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="project-description">Description *</label>
+                        <textarea id="project-description" name="description" class="form-control form-textarea" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="project-image">Image URL</label>
+                            <input type="text" id="project-image" name="image_url" class="form-control" placeholder="images/projects/filename.png">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="project-live-url">Live URL</label>
+                            <input type="url" id="project-live-url" name="live_url" class="form-control" placeholder="https://example.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="project-tech-stack">Tech Stack (comma-separated)</label>
+                        <input type="text" id="project-tech-stack" name="tech_stack" class="form-control" placeholder="React, Node.js, MongoDB">
+                    </div>
+                    <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('project-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="project-submit-btn">
+                            <span id="project-submit-text">Save Project</span>
+                            <div class="loading" id="project-loading" style="display: none;"></div>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Skill Modal -->
+    <div id="skill-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="skill-modal-title">Add New Skill</h3>
+                <button class="modal-close" onclick="closeModal('skill-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="skill-form">
+                    <input type="hidden" id="skill-id" name="id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="skill-name">Skill Name *</label>
+                            <input type="text" id="skill-name" name="skill_name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="skill-category">Category *</label>
+                            <select id="skill-category" name="category" class="form-control" required>
+                                <option value="">Select Category</option>
+                                <option value="Frontend">Frontend</option>
+                                <option value="Backend">Backend</option>
+                                <option value="DevOps & Tooling">DevOps & Tooling</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="skill-proficiency">Proficiency (0-100%)</label>
+                        <input type="number" id="skill-proficiency" name="proficiency" class="form-control" min="0" max="100" value="80">
+                    </div>
+                    <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('skill-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="skill-submit-btn">
+                            <span id="skill-submit-text">Save Skill</span>
+                            <div class="loading" id="skill-loading" style="display: none;"></div>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSection = 'dashboard';
+        let isLoggedIn = false;
+
+        // Check if user is already logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            setupLoginForm();
+            setupNavigation();
+            setupForms();
+        });
+
+        // Authentication
+        function checkLoginStatus() {
+            const loggedIn = localStorage.getItem('dashboard_logged_in');
+            const loginTime = localStorage.getItem('dashboard_login_time');
+
+            if (loggedIn === 'true' && loginTime) {
+                const now = Date.now();
+                const timeDiff = now - parseInt(loginTime);
+                const hoursDiff = timeDiff / (1000 * 60 * 60);
+
+                // Auto logout after 24 hours
+                if (hoursDiff < 24) {
+                    isLoggedIn = true;
+                    showDashboard();
+                    loadDashboard();
+                    return;
+                }
+            }
+
+            showLoginForm();
+        }
+
+        function setupLoginForm() {
+            const loginForm = document.getElementById('login-form');
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const password = document.getElementById('password').value;
+                const loginBtn = document.getElementById('login-btn');
+                const loginText = document.getElementById('login-btn-text');
+                const loading = document.getElementById('login-loading');
+                const alertDiv = document.getElementById('login-alert');
+
+                loginBtn.disabled = true;
+                loginText.style.display = 'none';
+                loading.style.display = 'inline-block';
+                alertDiv.style.display = 'none';
+
+                try {
+                    const response = await fetch('../backend/api/dashboard_auth.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: password, action: 'login' })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        isLoggedIn = true;
+                        localStorage.setItem('dashboard_logged_in', 'true');
+                        localStorage.setItem('dashboard_login_time', Date.now().toString());
+                        showDashboard();
+                        loadDashboard();
+                    } else {
+                        alertDiv.style.display = 'flex';
+                        document.getElementById('login-alert-text').textContent = data.message || 'Invalid password';
+                    }
+                } catch (error) {
+                    alertDiv.style.display = 'flex';
+                    document.getElementById('login-alert-text').textContent = 'Login failed: ' + error.message;
+                } finally {
+                    loginBtn.disabled = false;
+                    loginText.style.display = 'inline';
+                    loading.style.display = 'none';
+                }
+            });
+        }
+
+        function showLoginForm() {
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('dashboard').classList.remove('show');
+        }
+
+        function showDashboard() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('dashboard').classList.add('show');
+        }
+
+        function logout() {
+            isLoggedIn = false;
+            localStorage.removeItem('dashboard_logged_in');
+            localStorage.removeItem('dashboard_login_time');
+            showLoginForm();
+        }
+
+        // Navigation
+        function setupNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (this.id === 'logout-link') {
+                        logout();
+                        return;
+                    }
+                    const section = this.getAttribute('data-section');
+                    switchSection(section);
+                });
+            });
+        }
+
+        function switchSection(section) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(s => s.style.display = 'none');
+
+            // Remove active class from nav links
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(l => l.classList.remove('active'));
+
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+
+            // Add active class to current nav link
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+
+            currentSection = section;
+
+            // Load section data
+            switch(section) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'projects':
+                    loadProjects();
+                    break;
+                case 'skills':
+                    loadSkills();
+                    break;
+                case 'messages':
+                    loadMessages();
+                    break;
+                case 'database':
+                    loadDatabaseInfo();
+                    break;
+            }
+        }
+
+        // Dashboard
+        async function loadDashboard() {
+            if (!isLoggedIn) return;
+
+            try {
+                const response = await fetch('../backend/api/dashboard.php');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayStats(data.stats);
+                    displayRecentActivity(data.activity);
+                } else {
+                    showAlert('Error loading dashboard data', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to load dashboard: ' + error.message, 'error');
+            }
+        }
+
+        function displayStats(stats) {
+            const statsGrid = document.getElementById('stats-grid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Total Projects</div>
+                        <div class="stat-icon projects"><i class="fas fa-project-diagram"></i></div>
+                    </div>
+                    <div class="stat-value">${stats.projects || 0}</div>
+                    <div class="stat-change">Portfolio items</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Skills</div>
+                        <div class="stat-icon skills"><i class="fas fa-code"></i></div>
+                    </div>
+                    <div class="stat-value">${stats.skills || 0}</div>
+                    <div class="stat-change">Technical skills</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Messages</div>
+                        <div class="stat-icon messages"><i class="fas fa-envelope"></i></div>
+                    </div>
+                    <div class="stat-value">${stats.messages || 0}</div>
+                    <div class="stat-change">Contact inquiries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Database</div>
+                        <div class="stat-icon database"><i class="fas fa-database"></i></div>
+                    </div>
+                    <div class="stat-value">${stats.database_size || 'OK'}</div>
+                    <div class="stat-change">System status</div>
+                </div>
+            `;
+        }
+
+        function displayRecentActivity(activity) {
+            const activityDiv = document.getElementById('recent-activity');
+            if (!activity || activity.length === 0) {
+                activityDiv.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><h3>No recent activity</h3><p>Recent changes will appear here.</p></div>';
+                return;
+            }
+
+            activityDiv.innerHTML = activity.map(item => `
+                <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${item.action}</strong>
+                            <span style="color: var(--text-secondary); margin-left: 1rem;">${item.details}</span>
+                        </div>
+                        <small style="color: var(--text-secondary);">${item.time}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Projects
+        async function loadProjects() {
+            if (!isLoggedIn) return;
+
+            try {
+                const response = await fetch('../backend/api/projects.php');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayProjects(data.data);
+                } else {
+                    showAlert('Error loading projects', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to load projects: ' + error.message, 'error');
+            }
+        }
+
+        function displayProjects(projects) {
+            const container = document.getElementById('projects-table-container');
+
+            if (!projects || projects.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-project-diagram"></i><h3>No projects found</h3><p>Add your first project to get started.</p></div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Image</th>
+                            <th>Live URL</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${projects.map(project => {
+                            const normalizedCat = project.category === 'Events & Wedding' ? 'Wedding' : project.category;
+                            return `
+                            <tr>
+                                <td>${project.title}</td>
+                                <td><span class="badge badge-${normalizedCat.toLowerCase().replace(' ', '-')}">${normalizedCat}</span></td>
+                                <td>
+                                    ${project.image_url ? `<img src="../${project.image_url}" alt="${project.title}" style="width: 50px; height: 30px; object-fit: cover; border-radius: 4px;">` : 'No image'}
+                                </td>
+                                <td>
+                                    ${project.live_url ? `<a href="${project.live_url}" target="_blank" style="color: var(--primary);">View Live</a>` : 'No URL'}
+                                </td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-sm btn-secondary" onclick="editProject(${project.id})">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteProject(${project.id}, '${project.title}')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function openAddProjectModal() {
+            document.getElementById('project-modal-title').textContent = 'Add New Project';
+            document.getElementById('project-form').reset();
+            document.getElementById('project-id').value = '';
+            document.getElementById('project-modal').classList.add('show');
+        }
+
+        function editProject(id) {
+            // Fetch project data and populate modal
+            fetch(`../backend/api/projects.php?id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const project = data.data;
+                        document.getElementById('project-modal-title').textContent = 'Edit Project';
+                        document.getElementById('project-id').value = project.id;
+                        document.getElementById('project-title').value = project.title;
+                        document.getElementById('project-description').value = project.description;
+                        document.getElementById('project-category').value = project.category;
+                        document.getElementById('project-image').value = project.image_url || '';
+                        document.getElementById('project-live-url').value = project.live_url || '';
+                        document.getElementById('project-tech-stack').value = Array.isArray(project.tech_stack) ? project.tech_stack.join(', ') : '';
+                        document.getElementById('project-modal').classList.add('show');
+                    }
+                })
+                .catch(error => showAlert('Failed to load project: ' + error.message, 'error'));
+        }
+
+        function deleteProject(id, title) {
+            if (confirm(`Are you sure you want to delete "${title}"?`)) {
+                fetch('../backend/api/projects.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Project deleted successfully', 'success');
+                        loadProjects();
+                    } else {
+                        showAlert('Failed to delete project', 'error');
+                    }
+                })
+                .catch(error => showAlert('Error deleting project: ' + error.message, 'error'));
+            }
+        }
+
+        // Skills
+        async function loadSkills() {
+            if (!isLoggedIn) return;
+
+            try {
+                const response = await fetch('../backend/api/skills.php');
+                const data = await response.json();
+
+                if (data.success) {
+                    displaySkills(data.data);
+                } else {
+                    showAlert('Error loading skills', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to load skills: ' + error.message, 'error');
+            }
+        }
+
+        function displaySkills(skillsData) {
+            const container = document.getElementById('skills-table-container');
+
+            if (!skillsData || Object.keys(skillsData).length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-code"></i><h3>No skills found</h3><p>Add your technical skills to showcase your expertise.</p></div>';
+                return;
+            }
+
+            let skillsHtml = '';
+            for (const [category, skills] of Object.entries(skillsData)) {
+                skillsHtml += `
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">${category}</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Skill Name</th>
+                                    <th>Proficiency</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${skills.map(skill => `
+                                    <tr>
+                                        <td>${skill.skill_name}</td>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                                <div style="flex: 1; background: var(--surface-light); height: 8px; border-radius: 4px; overflow: hidden;">
+                                                    <div style="width: ${skill.proficiency}%; background: var(--primary); height: 100%;"></div>
+                                                </div>
+                                                <span style="font-size: 0.9rem; color: var(--text-secondary);">${skill.proficiency}%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="actions">
+                                                <button class="btn btn-sm btn-secondary" onclick="editSkill(${skill.id})">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" onclick="deleteSkill(${skill.id}, '${skill.skill_name}')">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = skillsHtml;
+        }
+
+        function openAddSkillModal() {
+            document.getElementById('skill-modal-title').textContent = 'Add New Skill';
+            document.getElementById('skill-form').reset();
+            document.getElementById('skill-id').value = '';
+            document.getElementById('skill-modal').classList.add('show');
+        }
+
+        function editSkill(id) {
+            // Fetch skill data and populate modal
+            fetch(`../backend/api/skills.php?id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const skill = data.data;
+                        document.getElementById('skill-modal-title').textContent = 'Edit Skill';
+                        document.getElementById('skill-id').value = skill.id;
+                        document.getElementById('skill-name').value = skill.skill_name;
+                        document.getElementById('skill-category').value = skill.category;
+                        document.getElementById('skill-proficiency').value = skill.proficiency;
+                        document.getElementById('skill-modal').classList.add('show');
+                    }
+                })
+                .catch(error => showAlert('Failed to load skill: ' + error.message, 'error'));
+        }
+
+        function deleteSkill(id, name) {
+            if (confirm(`Are you sure you want to delete "${name}"?`)) {
+                fetch('../backend/api/skills.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Skill deleted successfully', 'success');
+                        loadSkills();
+                    } else {
+                        showAlert('Failed to delete skill', 'error');
+                    }
+                })
+                .catch(error => showAlert('Error deleting skill: ' + error.message, 'error'));
+            }
+        }
+
+        // Messages
+        async function loadMessages() {
+            if (!isLoggedIn) return;
+
+            try {
+                const response = await fetch('../backend/api/messages.php');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayMessages(data.data);
+                } else {
+                    showAlert('Error loading messages', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to load messages: ' + error.message, 'error');
+            }
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('messages-table-container');
+
+            if (!messages || messages.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-envelope"></i><h3>No messages yet</h3><p>Contact form submissions will appear here.</p></div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Subject</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${messages.map(message => `
+                            <tr>
+                                <td>${message.name}</td>
+                                <td>${message.email}</td>
+                                <td>${message.subject || 'No subject'}</td>
+                                <td>${new Date(message.created_at).toLocaleDateString()}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-sm btn-secondary" onclick="viewMessage(${message.id})">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteMessage(${message.id})">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function viewMessage(id) {
+            fetch(`../backend/api/messages.php?id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const message = data.data;
+                        alert(`From: ${message.name} <${message.email}>\n\nSubject: ${message.subject}\n\nMessage:\n${message.message}\n\nDate: ${new Date(message.created_at).toLocaleString()}`);
+                    }
+                })
+                .catch(error => showAlert('Failed to load message: ' + error.message, 'error'));
+        }
+
+        function deleteMessage(id) {
+            if (confirm('Are you sure you want to delete this message?')) {
+                fetch('../backend/api/messages.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Message deleted successfully', 'success');
+                        loadMessages();
+                    } else {
+                        showAlert('Failed to delete message', 'error');
+                    }
+                })
+                .catch(error => showAlert('Error deleting message: ' + error.message, 'error'));
+            }
+        }
+
+        // Database
+        async function loadDatabaseInfo() {
+            if (!isLoggedIn) return;
+
+            try {
+                const response = await fetch('../backend/api/database.php');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayDatabaseInfo(data.info);
+                } else {
+                    showAlert('Error loading database info', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to load database info: ' + error.message, 'error');
+            }
+        }
+
+        function displayDatabaseInfo(info) {
+            const container = document.getElementById('database-info');
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    <div class="stat-card">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">Database Tables</h3>
+                        <div style="space-y: 1rem;">
+                            ${Object.entries(info.tables).map(([table, count]) => `
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                                    <span>${table}</span>
+                                    <span style="color: var(--primary); font-weight: 600;">${count} records</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">Database Info</h3>
+                        <div style="space-y: 1rem;">
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                                <span>Database Name</span>
+                                <span style="color: var(--text-secondary);">${info.database_name}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                                <span>Server</span>
+                                <span style="color: var(--text-secondary);">${info.server}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                                <span>PHP Version</span>
+                                <span style="color: var(--text-secondary);">${info.php_version}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function backupDatabase() {
+            showAlert('Database backup feature coming soon!', 'success');
+        }
+
+        function clearDatabase() {
+            if (confirm('⚠️ WARNING: This will delete ALL data from the database. Are you sure?')) {
+                if (confirm('This action cannot be undone. Confirm again to proceed.')) {
+                    showAlert('Database clear feature coming soon!', 'success');
+                }
+            }
+        }
+
+        // Forms
+        function setupForms() {
+            // Project form
+            document.getElementById('project-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                if (!isLoggedIn) return;
+
+                const submitBtn = document.getElementById('project-submit-btn');
+                const submitText = document.getElementById('project-submit-text');
+                const loading = document.getElementById('project-loading');
+
+                submitBtn.disabled = true;
+                submitText.style.display = 'none';
+                loading.style.display = 'inline-block';
+
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData);
+
+                try {
+                    const response = await fetch('../backend/api/projects.php', {
+                        method: data.id ? 'PUT' : 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showAlert(`Project ${data.id ? 'updated' : 'added'} successfully!`, 'success');
+                        closeModal('project-modal');
+                        loadProjects();
+                    } else {
+                        showAlert('Failed to save project: ' + (result.message || 'Unknown error'), 'error');
+                    }
+                } catch (error) {
+                    showAlert('Error saving project: ' + error.message, 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitText.style.display = 'inline';
+                    loading.style.display = 'none';
+                }
+            });
+
+            // Skill form
+            document.getElementById('skill-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                if (!isLoggedIn) return;
+
+                const submitBtn = document.getElementById('skill-submit-btn');
+                const submitText = document.getElementById('skill-submit-text');
+                const loading = document.getElementById('skill-loading');
+
+                submitBtn.disabled = true;
+                submitText.style.display = 'none';
+                loading.style.display = 'inline-block';
+
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData);
+
+                try {
+                    const response = await fetch('../backend/api/skills.php', {
+                        method: data.id ? 'PUT' : 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showAlert(`Skill ${data.id ? 'updated' : 'added'} successfully!`, 'success');
+                        closeModal('skill-modal');
+                        loadSkills();
+                    } else {
+                        showAlert('Failed to save skill: ' + (result.message || 'Unknown error'), 'error');
+                    }
+                } catch (error) {
+                    showAlert('Error saving skill: ' + error.message, 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitText.style.display = 'inline';
+                    loading.style.display = 'none';
+                }
+            });
+        }
+
+        // Utility functions
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function showAlert(message, type = 'success') {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+
+            const mainContent = document.querySelector('.main-content');
+            mainContent.insertBefore(alertDiv, mainContent.firstChild);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        function refreshData() {
+            if (!isLoggedIn) return;
+
+            switch(currentSection) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'projects':
+                    loadProjects();
+                    break;
+                case 'skills':
+                    loadSkills();
+                    break;
+                case 'messages':
+                    loadMessages();
+                    break;
+                case 'database':
+                    loadDatabaseInfo();
+                    break;
+            }
+            showAlert('Data refreshed successfully!', 'success');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'r':
+                        e.preventDefault();
+                        refreshData();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

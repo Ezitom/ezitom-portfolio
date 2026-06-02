@@ -48,9 +48,22 @@ try {
 
     // ── GET — fetch projects ──────────────────────────────────────
     if ($method === 'GET') {
+        $id = $_GET['id'] ?? null;
         $category = $_GET['category'] ?? null;
 
-        if ($category && $category !== 'all') {
+        if ($id) {
+            // Fetch single project
+            $stmt = $pdo->prepare("SELECT * FROM projects WHERE id = :id LIMIT 1");
+            $stmt->execute([':id' => (int)$id]);
+            $project = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($project) {
+                $project['tech_stack'] = json_decode($project['tech_stack'], true) ?? [];
+                respond(true, 'Project retrieved.', 200, ['data' => $project]);
+            } else {
+                respond(false, 'Project not found.', 404);
+            }
+        } elseif ($category && $category !== 'all') {
             $stmt = $pdo->prepare(
                 "SELECT * FROM projects WHERE category = :cat ORDER BY created_at DESC"
             );
@@ -59,14 +72,16 @@ try {
             $stmt = $pdo->query("SELECT * FROM projects ORDER BY created_at DESC");
         }
 
-        $projects = $stmt->fetchAll();
+        if (!$id) {
+            $projects = $stmt->fetchAll();
 
-        foreach ($projects as &$p) {
-            $p['tech_stack'] = json_decode($p['tech_stack'], true) ?? [];
+            foreach ($projects as &$p) {
+                $p['tech_stack'] = json_decode($p['tech_stack'], true) ?? [];
+            }
+            unset($p);
+
+            respond(true, 'Projects fetched.', 200, ['data' => $projects]);
         }
-        unset($p);
-
-        respond(true, 'Projects fetched.', 200, ['data' => $projects]);
     }
 
     // ── POST — add new project ────────────────────────────────────
@@ -81,7 +96,7 @@ try {
         $tech_stack  = $body['tech_stack']       ?? [];
         $image_url   = trim($body['image_url']   ?? '');
         $live_url    = trim($body['live_url']    ?? '');
-        $category    = trim($body['category']    ?? 'General');
+        $category    = trim($body['category']    ?? 'Business');
 
         if (!$title || !$description) {
             respond(false, 'Title and description are required.', 422);
@@ -116,7 +131,7 @@ try {
         $tech_stack  = $body['tech_stack']        ?? [];
         $image_url   = trim($body['image_url']    ?? '');
         $live_url    = trim($body['live_url']     ?? '');
-        $category    = trim($body['category']     ?? 'General');
+        $category    = trim($body['category']     ?? 'Business');
 
         if (!$id || !$title || !$description) {
             respond(false, 'ID, title, and description are required.', 422);

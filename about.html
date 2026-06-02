@@ -30,6 +30,7 @@
     href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700;800&family=Epilogue:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <!-- Favicon Tags -->
   <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
@@ -56,6 +57,11 @@
     })();
   </script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- EmailJS SDK -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"
+    defer>
+  </script>
 </head>
 
 <body>
@@ -76,7 +82,7 @@
         <div class="theme-toggle" title="Toggle Theme">
           <div class="theme-toggle-handle"></div>
         </div>
-        <a href="contact.html" class="btn btn-outlined">Hire Me &rarr;</a>
+        <a href="contact.html" class="btn btn-outlined">Hire Me <i class="fas fa-arrow-right" style="margin-left:5px;"></i></a>
         <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
       </div>
     </div>
@@ -140,7 +146,7 @@
 
         <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:2.5rem;">
           <a href="contact.html" class="btn btn-filled">Work With Me</a>
-          <a href="#" class="btn btn-outlined">View My CV &darr;</a>
+          <a href="#" class="btn btn-outlined">View My CV <i class="fas fa-arrow-down" style="margin-left:5px;"></i></a>
         </div>
       </div>
     </div>
@@ -176,6 +182,15 @@
   </section>
 
   <div id="footer-placeholder"></div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <span class="toast-icon" id="toast-icon">✓</span>
+    <div>
+      <div class="toast-title" id="toast-title"></div>
+      <div class="toast-text"  id="toast-text"></div>
+    </div>
+  </div>
 
   <script src="main.js"></script>
 </body>
